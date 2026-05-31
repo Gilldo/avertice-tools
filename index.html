@@ -1,0 +1,612 @@
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Avertice · Scenario Annotations</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0f1117;
+    --surface:  #171b26;
+    --border:   #262d3f;
+    --border2:  #1e2535;
+    --accent:   #4f8ef7;
+    --accent2:  #2e5cbf;
+    --green:    #34c47c;
+    --amber:    #f0b040;
+    --red:      #f05060;
+    --text:     #e2e8f4;
+    --muted:    #6b7899;
+    --label:    #8a9bc0;
+    --tag-a:    #1a3a6c;
+    --tag-b:    #1a3d2a;
+    --tag-c:    #3d2a00;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px 80px;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--border2) 1px, transparent 1px),
+      linear-gradient(90deg, var(--border2) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 760px;
+  }
+
+  /* Header */
+  header {
+    margin-bottom: 36px;
+  }
+
+  .logo-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  .logo-mark {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    font-size: 14px;
+    color: white;
+    letter-spacing: -0.5px;
+    flex-shrink: 0;
+  }
+
+  .logo-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--text);
+    letter-spacing: -0.4px;
+    line-height: 1.2;
+  }
+
+  .subtitle {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .card-section {
+    padding: 24px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .card-section:last-child { border-bottom: none; }
+
+  /* Scenario selector */
+  .select-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--label);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    display: block;
+  }
+
+  .scenario-select-wrap {
+    position: relative;
+  }
+
+  select {
+    width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 40px 11px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    appearance: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    outline: none;
+  }
+
+  select:focus { border-color: var(--accent); }
+  select:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .select-arrow {
+    position: absolute;
+    right: 14px; top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted);
+    pointer-events: none;
+    font-size: 12px;
+  }
+
+  /* Macro badge */
+  .meta-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    min-height: 24px;
+  }
+
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .badge-a { background: var(--tag-a); color: #7ab2f7; border: 1px solid #2a4a8c; }
+  .badge-b { background: var(--tag-b); color: #5dcc8a; border: 1px solid #2a6040; }
+  .badge-c { background: var(--tag-c); color: #f0c060; border: 1px solid #7a5010; }
+  .badge-x { background: #2a2a2a; color: var(--muted); border: 1px solid #444; }
+
+  .trigger-text {
+    font-size: 12px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Fields */
+  .fields { display: none; }
+  .fields.visible { display: block; }
+
+  .field-group {
+    margin-bottom: 20px;
+  }
+
+  .field-group:last-child { margin-bottom: 0; }
+
+  .field-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--label);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .field-hint {
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Sans', sans-serif;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+  }
+
+  textarea {
+    width: 100%;
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 11px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13.5px;
+    line-height: 1.6;
+    resize: vertical;
+    min-height: 80px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+
+  textarea:focus { border-color: var(--accent); }
+
+  textarea#f-output { min-height: 110px; }
+
+  .output-hint {
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+  }
+
+  /* Divider */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 20px 0;
+  }
+
+  /* Submit area */
+  .submit-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .status-msg {
+    font-size: 13px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 20px;
+  }
+
+  .status-msg.success { color: var(--green); }
+  .status-msg.error   { color: var(--red); }
+  .status-msg.loading { color: var(--accent); }
+
+  .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  .dot.pulse {
+    animation: pulse 1s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  button[type="submit"] {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 24px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+    white-space: nowrap;
+  }
+
+  button[type="submit"]:hover   { background: #3a7ae0; }
+  button[type="submit"]:active  { transform: scale(0.98); }
+  button[type="submit"]:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; transform: none; }
+
+  /* Loading skeleton */
+  .skeleton {
+    height: 44px;
+    background: linear-gradient(90deg, var(--border) 25%, var(--border2) 50%, var(--border) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.4s infinite;
+    border-radius: 8px;
+  }
+
+  @keyframes shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* Footer */
+  .page-footer {
+    margin-top: 24px;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* Config banner */
+  .config-banner {
+    background: #1a1200;
+    border: 1px solid #4a3800;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--amber);
+    font-family: 'DM Mono', monospace;
+    margin-bottom: 20px;
+    display: none;
+  }
+
+  .config-banner.visible { display: block; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="logo-row">
+      <div class="logo-mark">AV</div>
+      <span class="logo-text">Avertice Invest</span>
+    </div>
+    <h1>Scenario Annotations</h1>
+    <p class="subtitle">Edit the plain-language descriptions used in the weekly process overview document. Changes take effect on the next generation run.</p>
+  </header>
+
+  <div class="config-banner" id="config-banner">
+    ⚠ Configure SUPABASE_URL and MAKE_WEBHOOK_URL in the &lt;script&gt; block at the bottom of this file.
+  </div>
+
+  <div class="card">
+
+    <!-- Scenario selector -->
+    <div class="card-section">
+      <span class="select-label">Select scenario</span>
+      <div class="scenario-select-wrap">
+        <div class="skeleton" id="select-skeleton"></div>
+        <select id="scenario-select" disabled style="display:none">
+          <option value="">— choose a scenario —</option>
+        </select>
+        <span class="select-arrow">▾</span>
+      </div>
+      <div class="meta-row" id="meta-row"></div>
+    </div>
+
+    <!-- Edit fields -->
+    <div class="card-section">
+      <div class="fields" id="fields">
+
+        <div class="field-group">
+          <label class="field-label" for="f-input">
+            IN
+            <span class="field-hint">What triggers or feeds into this scenario</span>
+          </label>
+          <textarea id="f-input" rows="3" placeholder="e.g. Buyer submits the personal details form…"></textarea>
+        </div>
+
+        <hr class="divider">
+
+        <div class="field-group">
+          <label class="field-label" for="f-does">
+            DOES
+            <span class="field-hint">What the scenario does in plain language</span>
+          </label>
+          <textarea id="f-does" rows="4" placeholder="e.g. Creates or updates the buyer's contact record in the CRM…"></textarea>
+        </div>
+
+        <hr class="divider">
+
+        <div class="field-group">
+          <label class="field-label" for="f-output">
+            OUT
+            <span class="field-hint">What the scenario produces or sends</span>
+          </label>
+          <textarea id="f-output" rows="4" placeholder="e.g. Buyer saved in CRM&#10;Investor letter draft ready in Gmail&#10;Internal notification sent"></textarea>
+          <div class="output-hint">One bullet point per line — each line becomes a separate bullet in the document.</div>
+        </div>
+
+      </div>
+
+      <!-- Empty state -->
+      <div id="empty-state" style="text-align:center; padding: 32px 0; color: var(--muted); font-size:13px;">
+        Select a scenario above to edit its descriptions.
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="card-section">
+      <div class="submit-row">
+        <div class="status-msg" id="status-msg"></div>
+        <button type="submit" id="submit-btn" disabled>Save annotations</button>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="page-footer">
+    Changes update the <code>scenario_annotations</code> table · Reflected on next weekly doc run
+  </div>
+
+</div>
+
+<script>
+  // ── CONFIG — edit these two values ─────────────────────────────────────────
+  const SUPABASE_URL     = 'https://fqxjxudqyoivckyjhcqr.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxeGp4dWRxeW9pdmNreWpoY3FyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NzY5NjksImV4cCI6MjA5NTQ1Mjk2OX0.HAda-85MV_mpzt9GIFHu_m7KS7GbdUz0DhHrXwjk4C8';
+  const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/1yoddi6il1q7xbosr5u0c1yv9xqs2diq';
+  // ───────────────────────────────────────────────────────────────────────────
+
+  const MACRO_LABELS = { A: 'Macro A · New Deal Setup', B: 'Macro B · CRM & Deal Mgmt', C: 'Macro C · Maintenance' };
+  const MACRO_CLASSES = { A: 'badge-a', B: 'badge-b', C: 'badge-c' };
+
+  let annotations = {};  // keyed by scenario_id
+  let currentId   = null;
+
+  const selectEl   = document.getElementById('scenario-select');
+  const skeleton   = document.getElementById('select-skeleton');
+  const fieldsEl   = document.getElementById('fields');
+  const emptyEl    = document.getElementById('empty-state');
+  const metaRow    = document.getElementById('meta-row');
+  const statusEl   = document.getElementById('status-msg');
+  const submitBtn  = document.getElementById('submit-btn');
+  const configBanner = document.getElementById('config-banner');
+
+  if (MAKE_WEBHOOK_URL === 'PASTE_YOUR_MAKE_WEBHOOK_URL_HERE') {
+    configBanner.classList.add('visible');
+  }
+
+  // ── Load annotations from Supabase ─────────────────────────────────────────
+  async function loadAnnotations() {
+    const res = await fetch(
+      `${SUPABASE_URL}/rest/v1/scenario_annotations?select=*&order=macro,sort_order`,
+      { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': `Bearer ${SUPABASE_ANON_KEY}` } }
+    );
+    if (!res.ok) throw new Error(`Supabase ${res.status}`);
+    const rows = await res.json();
+    annotations = {};
+    rows.forEach(r => { annotations[r.scenario_id] = r; });
+    return rows;
+  }
+
+  // ── Populate dropdown ───────────────────────────────────────────────────────
+  function populateSelect(rows) {
+    // Group by macro
+    const groups = { A: [], B: [], C: [], '?': [] };
+    rows.forEach(r => {
+      const m = r.macro ?? '?';
+      (groups[m] || groups['?']).push(r);
+    });
+
+    const labels = { A: 'A · New Deal Setup', B: 'B · CRM & Deal Management', C: 'C · Maintenance & Background', '?': 'Uncategorised' };
+
+    Object.entries(labels).forEach(([macro, label]) => {
+      const items = groups[macro];
+      if (!items || !items.length) return;
+      const og = document.createElement('optgroup');
+      og.label = label;
+      items.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r.scenario_id;
+        opt.textContent = r.scenario_name;
+        og.appendChild(opt);
+      });
+      selectEl.appendChild(og);
+    });
+
+    skeleton.style.display = 'none';
+    selectEl.style.display = 'block';
+    selectEl.disabled = false;
+  }
+
+  // ── On scenario change ──────────────────────────────────────────────────────
+  selectEl.addEventListener('change', () => {
+    const id = parseInt(selectEl.value);
+    if (!id) {
+      currentId = null;
+      fieldsEl.classList.remove('visible');
+      emptyEl.style.display = 'block';
+      metaRow.innerHTML = '';
+      submitBtn.disabled = true;
+      return;
+    }
+
+    currentId = id;
+    const ann = annotations[id] ?? {};
+
+    // Fill fields
+    document.getElementById('f-input').value  = ann.input_text  ?? '';
+    document.getElementById('f-does').value   = ann.does_text   ?? '';
+    document.getElementById('f-output').value = ann.output_text ?? '';
+
+    // Meta badge
+    const macro = ann.macro ?? '?';
+    const badgeClass = MACRO_CLASSES[macro] ?? 'badge-x';
+    const macroLabel = MACRO_LABELS[macro] ?? 'Uncategorised';
+    const trigger = ann.trigger_label ?? '';
+    metaRow.innerHTML = `
+      <span class="badge ${badgeClass}">${macroLabel}</span>
+      ${trigger ? `<span class="trigger-text">${trigger}</span>` : ''}
+    `;
+
+    fieldsEl.classList.add('visible');
+    emptyEl.style.display = 'none';
+    submitBtn.disabled = false;
+    setStatus('');
+  });
+
+  // ── Submit ──────────────────────────────────────────────────────────────────
+  submitBtn.addEventListener('click', async () => {
+    if (!currentId) return;
+
+    const ann = annotations[currentId] ?? {};
+    const payload = {
+      scenario_id:   currentId,
+      scenario_name: ann.scenario_name ?? selectEl.options[selectEl.selectedIndex].text,
+      macro:         ann.macro ?? null,
+      sort_order:    ann.sort_order ?? null,
+      human_after:   ann.human_after ?? null,
+      input_text:    document.getElementById('f-input').value.trim(),
+      does_text:     document.getElementById('f-does').value.trim(),
+      output_text:   document.getElementById('f-output').value.trim(),
+    };
+
+    submitBtn.disabled = true;
+    setStatus('loading', 'Saving…');
+
+    try {
+      const res = await fetch(MAKE_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      // Update local cache
+      annotations[currentId] = { ...annotations[currentId], ...payload };
+      setStatus('success', 'Saved — will appear in the next doc generation');
+    } catch (err) {
+      setStatus('error', `Failed: ${err.message}`);
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+
+  function setStatus(type, msg = '') {
+    statusEl.className = `status-msg${type ? ' ' + type : ''}`;
+    if (!msg) { statusEl.innerHTML = ''; return; }
+    const pulse = type === 'loading' ? ' pulse' : '';
+    statusEl.innerHTML = `<span class="dot${pulse}"></span>${msg}`;
+  }
+
+  // ── Init ────────────────────────────────────────────────────────────────────
+  (async () => {
+    try {
+      const rows = await loadAnnotations();
+      populateSelect(rows);
+    } catch (err) {
+      skeleton.style.display = 'none';
+      selectEl.style.display = 'block';
+      selectEl.disabled = true;
+      setStatus('error', `Could not load scenarios: ${err.message}`);
+    }
+  })();
+</script>
+</body>
+</html>
