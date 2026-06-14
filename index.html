@@ -653,10 +653,10 @@
     const ann = annotations[currentId] ?? {};
     const payload = {
       scenario_id:   currentId,
-      scenario_name: ann.scenario_name ?? selectEl.options[selectEl.selectedIndex].text,
-      macro:         selectedMacro ?? ann.macro ?? null,
-      sort_order:    ann.sort_order ?? null,
-      human_after:   ann.human_after ?? null,
+      scenario_name: (ann.scenario_name ?? selectEl.options[selectEl.selectedIndex].text).replace(/^✦\s*/, ''),
+      macro:         selectedMacro || ann.macro || null,
+      sort_order:    ann.sort_order != null ? ann.sort_order : null,
+      human_after:   ann.human_after || null,
       input_text:    document.getElementById('f-input').value.trim(),
       does_text:     document.getElementById('f-does').value.trim(),
       output_text:   document.getElementById('f-output').value.trim(),
