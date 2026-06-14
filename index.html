@@ -496,8 +496,9 @@
   const MACRO_LABELS = { A: 'Macro A · New Deal Setup', B: 'Macro B · CRM & Deal Mgmt', C: 'Macro C · Maintenance' };
   const MACRO_CLASSES = { A: 'badge-a', B: 'badge-b', C: 'badge-c' };
 
-  let annotations = {};  // keyed by scenario_id
-  let currentId   = null;
+  let annotations    = {};  // keyed by scenario_id
+  let currentId      = null;
+  let allScenarios   = [];   // full list from Make API
 
   const selectEl   = document.getElementById('scenario-select');
   const skeleton   = document.getElementById('select-skeleton');
@@ -673,8 +674,17 @@
 
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
-      // Update local cache
+      // Update local cache and rebuild dropdown
       annotations[currentId] = { ...annotations[currentId], ...payload };
+
+      // Rebuild dropdown to reflect new macro grouping
+      const prevValue = String(currentId);
+      selectEl.innerHTML = '<option value="">— choose a scenario —</option>';
+      populateSelect(allScenarios);
+
+      // Re-select the same scenario
+      selectEl.value = prevValue;
+
       setStatus('success', 'Saved — will appear in the next doc generation');
     } catch (err) {
       setStatus('error', `Failed: ${err.message}`);
@@ -697,7 +707,8 @@
         loadMakeScenarios(),
         loadAnnotations(),
       ]);
-      populateSelect(makeScenarios);
+      allScenarios = makeScenarios;
+      populateSelect(allScenarios);
     } catch (err) {
       skeleton.style.display = 'none';
       selectEl.style.display = 'block';
