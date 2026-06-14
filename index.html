@@ -189,6 +189,33 @@
   .badge-c { background: var(--tag-c); color: #f0c060; border: 1px solid #7a5010; }
   .badge-x { background: #2a2a2a; color: var(--muted); border: 1px solid #444; }
 
+  /* Macro button group */
+  .macro-btn-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .macro-btn {
+    background: var(--bg);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 16px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.04em;
+  }
+
+  .macro-btn:hover { border-color: var(--accent); color: var(--text); }
+
+  .macro-btn.active-a { background: var(--tag-a); color: #7ab2f7; border-color: #2a4a8c; }
+  .macro-btn.active-b { background: var(--tag-b); color: #5dcc8a; border-color: #2a6040; }
+  .macro-btn.active-c { background: var(--tag-c); color: #f0c060; border-color: #7a5010; }
+
   .trigger-text {
     font-size: 12px;
     color: var(--muted);
@@ -393,6 +420,20 @@
       <div class="fields" id="fields">
 
         <div class="field-group">
+          <label class="field-label" for="f-macro">
+            MACRO
+            <span class="field-hint">Which automation group this scenario belongs to</span>
+          </label>
+          <div class="macro-btn-group" id="macro-btn-group">
+            <button type="button" class="macro-btn" data-macro="A">A · New Deal Setup</button>
+            <button type="button" class="macro-btn" data-macro="B">B · CRM & Deal Mgmt</button>
+            <button type="button" class="macro-btn" data-macro="C">C · Maintenance</button>
+          </div>
+        </div>
+
+        <hr class="divider">
+
+        <div class="field-group">
           <label class="field-label" for="f-input">
             IN
             <span class="field-hint">What triggers or feeds into this scenario</span>
@@ -556,6 +597,9 @@
     document.getElementById('f-does').value   = ann.does_text   ?? '';
     document.getElementById('f-output').value = ann.output_text ?? '';
 
+    // Set macro buttons
+    setMacroButtons(ann.macro ?? null);
+
     // Meta badge
     const macro = ann.macro ?? '?';
     const badgeClass = MACRO_CLASSES[macro] ?? 'badge-x';
@@ -572,6 +616,35 @@
     setStatus('');
   });
 
+  // ── Macro button group ────────────────────────────────────────────────────
+  let selectedMacro = null;
+
+  function setMacroButtons(macro) {
+    selectedMacro = macro;
+    document.querySelectorAll('.macro-btn').forEach(btn => {
+      btn.classList.remove('active-a', 'active-b', 'active-c');
+      if (btn.dataset.macro === macro) {
+        btn.classList.add(`active-${macro.toLowerCase()}`);
+      }
+    });
+  }
+
+  document.querySelectorAll('.macro-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const m = btn.dataset.macro;
+      setMacroButtons(m);
+      // Update meta badge live
+      const badgeClass = MACRO_CLASSES[m] ?? 'badge-x';
+      const macroLabel = MACRO_LABELS[m] ?? 'Uncategorised';
+      const ann = annotations[currentId] ?? {};
+      const trigger = ann.trigger_label ?? '';
+      metaRow.innerHTML = `
+        <span class="badge ${badgeClass}">${macroLabel}</span>
+        ${trigger ? `<span class="trigger-text">${trigger}</span>` : ''}
+      `;
+    });
+  });
+
   // ── Submit ──────────────────────────────────────────────────────────────────
   submitBtn.addEventListener('click', async () => {
     if (!currentId) return;
@@ -580,7 +653,7 @@
     const payload = {
       scenario_id:   currentId,
       scenario_name: ann.scenario_name ?? selectEl.options[selectEl.selectedIndex].text,
-      macro:         ann.macro ?? null,
+      macro:         selectedMacro ?? ann.macro ?? null,
       sort_order:    ann.sort_order ?? null,
       human_after:   ann.human_after ?? null,
       input_text:    document.getElementById('f-input').value.trim(),
