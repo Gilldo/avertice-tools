@@ -450,9 +450,6 @@
   const SUPABASE_URL     = 'https://fqxjxudqyoivckyjhcqr.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxeGp4dWRxeW9pdmNreWpoY3FyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NzY5NjksImV4cCI6MjA5NTQ1Mjk2OX0.HAda-85MV_mpzt9GIFHu_m7KS7GbdUz0DhHrXwjk4C8';
   const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/1yoddi6il1q7xbosr5u0c1yv9xqs2diq';
-  const MAKE_API_TOKEN   = '325ebf9a-925a-4016-b10d-06537a14c3ed';
-  const MAKE_TEAM_ID     = 1661045;
-  const MAKE_FOLDER_ID   = 186004;
   // ───────────────────────────────────────────────────────────────────────────
 
   const MACRO_LABELS = { A: 'Macro A · New Deal Setup', B: 'Macro B · CRM & Deal Mgmt', C: 'Macro C · Maintenance' };
@@ -474,13 +471,10 @@
     configBanner.classList.add('visible');
   }
 
-  // ── Load scenarios from Make API (production folder) ──────────────────────
+  // ── Load scenarios from Make API via Cloudflare Worker proxy ───────────────
   async function loadMakeScenarios() {
-    const url = `https://us2.make.com/api/v2/scenarios?teamId=${MAKE_TEAM_ID}&folderId=${MAKE_FOLDER_ID}&pg[limit]=100`;
-    const res = await fetch(url, {
-      headers: { 'Authorization': `Token ${MAKE_API_TOKEN}` }
-    });
-    if (!res.ok) throw new Error(`Make API ${res.status}`);
+    const res = await fetch('https://avertice-make-proxy.app-a52.workers.dev');
+    if (!res.ok) throw new Error(`Make proxy ${res.status}`);
     const data = await res.json();
     return data.scenarios ?? [];
   }
