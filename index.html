@@ -450,6 +450,9 @@
   const SUPABASE_URL     = 'https://fqxjxudqyoivckyjhcqr.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxeGp4dWRxeW9pdmNreWpoY3FyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4NzY5NjksImV4cCI6MjA5NTQ1Mjk2OX0.HAda-85MV_mpzt9GIFHu_m7KS7GbdUz0DhHrXwjk4C8';
   const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/1yoddi6il1q7xbosr5u0c1yv9xqs2diq';
+  const MAKE_API_TOKEN   = '325ebf9a-925a-4016-b10d-06537a14c3ed';
+  const MAKE_TEAM_ID     = 1661045;
+  const MAKE_FOLDER_ID   = 186004;
   // ───────────────────────────────────────────────────────────────────────────
 
   const MACRO_LABELS = { A: 'Macro A · New Deal Setup', B: 'Macro B · CRM & Deal Mgmt', C: 'Macro C · Maintenance' };
@@ -471,6 +474,17 @@
     configBanner.classList.add('visible');
   }
 
+  // ── Load scenarios from Make API (production folder) ──────────────────────
+  async function loadMakeScenarios() {
+    const url = `https://us2.make.com/api/v2/scenarios?teamId=${MAKE_TEAM_ID}&folderId=${MAKE_FOLDER_ID}&pg[limit]=100`;
+    const res = await fetch(url, {
+      headers: { 'Authorization': `Token ${MAKE_API_TOKEN}` }
+    });
+    if (!res.ok) throw new Error(`Make API ${res.status}`);
+    const data = await res.json();
+    return data.scenarios ?? [];
+  }
+
   // ── Load annotations from Supabase ─────────────────────────────────────────
   async function loadAnnotations() {
     const res = await fetch(
@@ -485,13 +499,27 @@
   }
 
   // ── Populate dropdown ───────────────────────────────────────────────────────
-  function populateSelect(rows) {
-    // Group by macro
+  function populateSelect(makeScenarios) {
+    // Group by macro from annotations; unannotated scenarios go to '?'
     const groups = { A: [], B: [], C: [], '?': [] };
-    rows.forEach(r => {
-      const m = r.macro ?? '?';
-      (groups[m] || groups['?']).push(r);
+
+    makeScenarios.forEach(s => {
+      const ann = annotations[s.id];
+      const m = ann?.macro ?? '?';
+      const entry = {
+        scenario_id:   s.id,
+        scenario_name: ann?.scenario_name ?? s.name,
+        macro:         ann?.macro ?? null,
+        sort_order:    ann?.sort_order ?? 9999,
+        annotated:     !!ann,
+      };
+      (groups[m] || groups['?']).push(entry);
     });
+
+    // Sort each group by sort_order, then name
+    Object.values(groups).forEach(g =>
+      g.sort((a, b) => a.sort_order - b.sort_order || a.scenario_name.localeCompare(b.scenario_name))
+    );
 
     const labels = { A: 'A · New Deal Setup', B: 'B · CRM & Deal Management', C: 'C · Maintenance & Background', '?': 'Uncategorised' };
 
@@ -503,7 +531,7 @@
       items.forEach(r => {
         const opt = document.createElement('option');
         opt.value = r.scenario_id;
-        opt.textContent = r.scenario_name;
+        opt.textContent = r.annotated ? r.scenario_name : `✦ ${r.scenario_name}`;
         og.appendChild(opt);
       });
       selectEl.appendChild(og);
@@ -598,8 +626,11 @@
   // ── Init ────────────────────────────────────────────────────────────────────
   (async () => {
     try {
-      const rows = await loadAnnotations();
-      populateSelect(rows);
+      const [makeScenarios] = await Promise.all([
+        loadMakeScenarios(),
+        loadAnnotations(),
+      ]);
+      populateSelect(makeScenarios);
     } catch (err) {
       skeleton.style.display = 'none';
       selectEl.style.display = 'block';
