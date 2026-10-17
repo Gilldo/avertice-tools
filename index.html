@@ -22,7 +22,6 @@
     --tag-a:    #1a3a6c;
     --tag-b:    #1a3d2a;
     --tag-c:    #3d2a00;
-    --tag-d:    #2d1a4d;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -188,7 +187,6 @@
   .badge-a { background: var(--tag-a); color: #7ab2f7; border: 1px solid #2a4a8c; }
   .badge-b { background: var(--tag-b); color: #5dcc8a; border: 1px solid #2a6040; }
   .badge-c { background: var(--tag-c); color: #f0c060; border: 1px solid #7a5010; }
-  .badge-d { background: var(--tag-d); color: #c4a0f5; border: 1px solid #5a3a8c; }
   .badge-x { background: #2a2a2a; color: var(--muted); border: 1px solid #444; }
 
   /* Macro button group */
@@ -214,10 +212,7 @@
 
   .macro-btn:hover { border-color: var(--accent); color: var(--text); }
 
-  .macro-btn.active-a { background: var(--tag-a); color: #7ab2f7; border-color: #2a4a8c; }
-  .macro-btn.active-b { background: var(--tag-b); color: #5dcc8a; border-color: #2a6040; }
-  .macro-btn.active-c { background: var(--tag-c); color: #f0c060; border-color: #7a5010; }
-  .macro-btn.active-d { background: var(--tag-d); color: #c4a0f5; border-color: #5a3a8c; }
+  .macro-btn.active { background: #2a2a2a; color: var(--text); border-color: #888; }
 
   .trigger-text {
     font-size: 12px;
@@ -432,6 +427,7 @@
             <button type="button" class="macro-btn" data-macro="B">B · CRM & Deal Mgmt</button>
             <button type="button" class="macro-btn" data-macro="C">C · Maintenance</button>
             <button type="button" class="macro-btn" data-macro="D">D · Investor Portal</button>
+            <button type="button" class="macro-btn" data-macro="E">E · Marketing</button>
           </div>
         </div>
 
@@ -497,8 +493,8 @@
   const MAKE_WEBHOOK_URL = 'https://hook.us2.make.com/1yoddi6il1q7xbosr5u0c1yv9xqs2diq';
   // ───────────────────────────────────────────────────────────────────────────
 
-  const MACRO_LABELS = { A: 'Macro A · New Deal Setup', B: 'Macro B · CRM & Deal Mgmt', C: 'Macro C · Maintenance', D: 'Macro D · Investor Portal' };
-  const MACRO_CLASSES = { A: 'badge-a', B: 'badge-b', C: 'badge-c', D: 'badge-d' };
+  const MACRO_LABELS = { A: 'Macro A · New Deal Setup', B: 'Macro B · CRM & Deal Mgmt', C: 'Macro C · Maintenance', D: 'Macro D · Investor Portal', E: 'Macro E · Marketing' };
+  const MACRO_CLASSES = { A: 'badge-a', B: 'badge-b', C: 'badge-c' };
 
   let annotations    = {};  // keyed by scenario_id
   let currentId      = null;
@@ -541,7 +537,7 @@
   // ── Populate dropdown ───────────────────────────────────────────────────────
   function populateSelect(makeScenarios) {
     // Group by macro from annotations; unannotated scenarios go to '?'
-    const groups = { A: [], B: [], C: [], D: [], '?': [] };
+    const groups = { A: [], B: [], C: [], D: [], E: [], '?': [] };
 
     makeScenarios.forEach(s => {
       const ann = annotations[s.id];
@@ -561,7 +557,7 @@
       g.sort((a, b) => a.sort_order - b.sort_order || a.scenario_name.localeCompare(b.scenario_name))
     );
 
-    const labels = { A: 'A · New Deal Setup', B: 'B · CRM & Deal Management', C: 'C · Maintenance & Background', D: 'D · Investor Portal', '?': 'Uncategorised' };
+    const labels = { A: 'A · New Deal Setup', B: 'B · CRM & Deal Management', C: 'C · Maintenance & Background', D: 'D · Investor Portal', E: 'E · Marketing', '?': 'Uncategorised' };
 
     Object.entries(labels).forEach(([macro, label]) => {
       const items = groups[macro];
@@ -627,9 +623,9 @@
   function setMacroButtons(macro) {
     selectedMacro = macro;
     document.querySelectorAll('.macro-btn').forEach(btn => {
-      btn.classList.remove('active-a', 'active-b', 'active-c');
+      btn.classList.remove('active');
       if (btn.dataset.macro === macro) {
-        btn.classList.add(`active-${macro.toLowerCase()}`);
+        btn.classList.add('active');
       }
     });
   }
